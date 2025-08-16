@@ -1,21 +1,43 @@
-import React, { useState, useEffect } from 'react';
-import { apiService } from '../utils/apiService';
-import { useCreditsGuard } from '../hooks/useAuthGuard';
-import { useAuth } from '../contexts/AuthContext';
-import AuthModal from './auth/AuthModal';
-import CreditsDisplay from './auth/CreditsDisplay';
-
-interface ImageGeneratorProps {
-    prompt?: string;
-}
-
-const ImageGenerator: React.FC<ImageGeneratorProps> = ({ prompt: externalPrompt }) => {
-    const [prompt, setPrompt] = useState(externalPrompt || '');
-    const [imageUrl, setImageUrl] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [isSDAvailable, setIsSDAvailable] = useState<boolean | null>(null);
-    const [advancedMode, setAdvancedMode] = useState(false);
-    const [parameters, setParameters] = useState({
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const react_1 = __importStar(require("react"));
+const apiService_1 = require("../utils/apiService");
+const useAuthGuard_1 = require("../hooks/useAuthGuard");
+const AuthContext_1 = require("../contexts/AuthContext");
+const AuthModal_1 = __importDefault(require("./auth/AuthModal"));
+const ImageGenerator = ({ prompt: externalPrompt }) => {
+    const [prompt, setPrompt] = (0, react_1.useState)(externalPrompt || '');
+    const [imageUrl, setImageUrl] = (0, react_1.useState)('');
+    const [loading, setLoading] = (0, react_1.useState)(false);
+    const [isSDAvailable, setIsSDAvailable] = (0, react_1.useState)(null);
+    const [advancedMode, setAdvancedMode] = (0, react_1.useState)(false);
+    const [parameters, setParameters] = (0, react_1.useState)({
         width: 512,
         height: 512,
         steps: 20,
@@ -23,47 +45,33 @@ const ImageGenerator: React.FC<ImageGeneratorProps> = ({ prompt: externalPrompt 
         sampler_name: 'Euler a',
         negative_prompt: 'blurry, low quality, distorted'
     });
-
     // Hooks d'authentification et de crédits
-    const { user } = useAuth();
-    const {
-        checkAndUseCredits,
-        remainingCredits,
-        hasEnoughCredits,
-        showAuthModal,
-        setShowAuthModal,
-        showCreditsWarning,
-        setShowCreditsWarning,
-        isAuthenticated
-    } = useCreditsGuard(1);
-
+    const { user } = (0, AuthContext_1.useAuth)();
+    const { checkAndUseCredits, remainingCredits, hasEnoughCredits, showAuthModal, setShowAuthModal, showCreditsWarning, setShowCreditsWarning, isAuthenticated } = (0, useAuthGuard_1.useCreditsGuard)(1);
     // Vérifier la disponibilité de Stable Diffusion au chargement
-    useEffect(() => {
+    (0, react_1.useEffect)(() => {
         checkSDAvailability();
     }, []);
-
     // Mettre à jour le prompt externe
-    useEffect(() => {
+    (0, react_1.useEffect)(() => {
         if (externalPrompt) {
             setPrompt(externalPrompt);
         }
     }, [externalPrompt]);
-
     const checkSDAvailability = async () => {
-        const available = await apiService.checkAvailability();
+        const available = await apiService_1.apiService.checkAvailability();
         setIsSDAvailable(available);
     };
-
     const generateImage = async () => {
-        if (!prompt.trim()) return;
-
+        if (!prompt.trim())
+            return;
         // Vérifier l'authentification et les crédits
         const canProceed = await checkAndUseCredits();
-        if (!canProceed) return;
-
+        if (!canProceed)
+            return;
         setLoading(true);
         try {
-            const result = await apiService.generateImage({
+            const result = await apiService_1.apiService.generateImage({
                 prompt,
                 negative_prompt: parameters.negative_prompt,
                 width: parameters.width,
@@ -73,20 +81,20 @@ const ImageGenerator: React.FC<ImageGeneratorProps> = ({ prompt: externalPrompt 
                 sampler_name: parameters.sampler_name,
                 userId: user?.id // Ajouter l'ID utilisateur
             });
-
             if (result.images && result.images.length > 0) {
                 setImageUrl(`data:image/png;base64,${result.images[0]}`);
             }
-        } catch (error) {
+        }
+        catch (error) {
             console.error('Erreur génération:', error);
-        } finally {
+        }
+        finally {
             setLoading(false);
         }
     };
-
     const downloadImage = () => {
-        if (!imageUrl) return;
-        
+        if (!imageUrl)
+            return;
         const link = document.createElement('a');
         link.href = imageUrl;
         link.download = `hibbi4-generated-${Date.now()}.png`;
@@ -94,26 +102,21 @@ const ImageGenerator: React.FC<ImageGeneratorProps> = ({ prompt: externalPrompt 
         link.click();
         document.body.removeChild(link);
     };
-
     const getStatusColor = () => {
-        if (isSDAvailable === null) return '#ffa500';
+        if (isSDAvailable === null)
+            return '#ffa500';
         return isSDAvailable ? '#4caf50' : '#ff9800';
     };
-
     const getStatusText = () => {
-        if (isSDAvailable === null) return 'Vérification...';
+        if (isSDAvailable === null)
+            return 'Vérification...';
         return isSDAvailable ? 'IA Connectée' : 'Mode Démo';
     };
-
-    return (
-        <div className="image-generator">
+    return (<div className="image-generator">
             {/* Status indicator */}
             <div className="generator-status">
                 <div className="status-indicator">
-                    <div 
-                        className="status-dot" 
-                        style={{ backgroundColor: getStatusColor() }}
-                    ></div>
+                    <div className="status-dot" style={{ backgroundColor: getStatusColor() }}></div>
                     <span className="status-text">{getStatusText()}</span>
                 </div>
             </div>
@@ -121,67 +124,40 @@ const ImageGenerator: React.FC<ImageGeneratorProps> = ({ prompt: externalPrompt 
             {/* Zone de prompt principale */}
             <div className="prompt-section">
                 <label htmlFor="main-prompt">Décrivez l'image que vous voulez créer :</label>
-                <textarea
-                    id="main-prompt"
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    placeholder="Ex: Un chat ninja dans un paysage cyberpunk, style anime, haute qualité"
-                    className="prompt-textarea"
-                    rows={3}
-                />
+                <textarea id="main-prompt" value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Ex: Un chat ninja dans un paysage cyberpunk, style anime, haute qualité" className="prompt-textarea" rows={3}/>
                 
                 <div className="prompt-actions">
-                    <button 
-                        onClick={generateImage} 
-                        disabled={loading || !prompt.trim() || (!isAuthenticated && !hasEnoughCredits)}
-                        className="generate-btn"
-                        title={!isAuthenticated ? "Connexion requise" : !hasEnoughCredits ? "Crédits insuffisants" : ""}
-                    >
-                        {loading ? (
-                            <>
+                    <button onClick={generateImage} disabled={loading || !prompt.trim() || (!isAuthenticated && !hasEnoughCredits)} className="generate-btn" title={!isAuthenticated ? "Connexion requise" : !hasEnoughCredits ? "Crédits insuffisants" : ""}>
+                        {loading ? (<>
                                 <span className="spinner"></span>
                                 Génération...
-                            </>
-                        ) : !isAuthenticated ? (
-                            <>
+                            </>) : !isAuthenticated ? (<>
                                 🔐 Se connecter pour générer
-                            </>
-                        ) : !hasEnoughCredits ? (
-                            <>
+                            </>) : !hasEnoughCredits ? (<>
                                 ⏳ Plus de crédits aujourd'hui
-                            </>
-                        ) : (
-                            <>
+                            </>) : (<>
                                 ✨ Générer l'Image (1 crédit)
-                            </>
-                        )}
+                            </>)}
                     </button>
                     
-                    <button 
-                        onClick={() => setAdvancedMode(!advancedMode)}
-                        className="advanced-btn"
-                    >
+                    <button onClick={() => setAdvancedMode(!advancedMode)} className="advanced-btn">
                         ⚙️ {advancedMode ? 'Masquer' : 'Paramètres'}
                     </button>
                 </div>
             </div>
 
             {/* Paramètres avancés */}
-            {advancedMode && (
-                <div className="advanced-section">
+            {advancedMode && (<div className="advanced-section">
                     <h3>⚙️ Paramètres Avancés</h3>
                     
                     <div className="params-grid">
                         <div className="param-group">
                             <label>Dimensions</label>
                             <div className="dimension-controls">
-                                <select 
-                                    value={`${parameters.width}x${parameters.height}`}
-                                    onChange={(e) => {
-                                        const [width, height] = e.target.value.split('x').map(Number);
-                                        setParameters(prev => ({ ...prev, width, height }));
-                                    }}
-                                >
+                                <select value={`${parameters.width}x${parameters.height}`} onChange={(e) => {
+                const [width, height] = e.target.value.split('x').map(Number);
+                setParameters(prev => ({ ...prev, width, height }));
+            }}>
                                     <option value="512x512">512x512 (Carré)</option>
                                     <option value="768x512">768x512 (Paysage)</option>
                                     <option value="512x768">512x768 (Portrait)</option>
@@ -192,42 +168,26 @@ const ImageGenerator: React.FC<ImageGeneratorProps> = ({ prompt: externalPrompt 
 
                         <div className="param-group">
                             <label>Steps: {parameters.steps}</label>
-                            <input
-                                type="range"
-                                min="10"
-                                max="50"
-                                value={parameters.steps}
-                                onChange={(e) => setParameters(prev => ({ 
-                                    ...prev, 
-                                    steps: parseInt(e.target.value) 
-                                }))}
-                            />
+                            <input type="range" min="10" max="50" value={parameters.steps} onChange={(e) => setParameters(prev => ({
+                ...prev,
+                steps: parseInt(e.target.value)
+            }))}/>
                         </div>
 
                         <div className="param-group">
                             <label>CFG Scale: {parameters.cfg_scale}</label>
-                            <input
-                                type="range"
-                                min="1"
-                                max="20"
-                                step="0.5"
-                                value={parameters.cfg_scale}
-                                onChange={(e) => setParameters(prev => ({ 
-                                    ...prev, 
-                                    cfg_scale: parseFloat(e.target.value) 
-                                }))}
-                            />
+                            <input type="range" min="1" max="20" step="0.5" value={parameters.cfg_scale} onChange={(e) => setParameters(prev => ({
+                ...prev,
+                cfg_scale: parseFloat(e.target.value)
+            }))}/>
                         </div>
 
                         <div className="param-group">
                             <label>Sampler</label>
-                            <select 
-                                value={parameters.sampler_name}
-                                onChange={(e) => setParameters(prev => ({ 
-                                    ...prev, 
-                                    sampler_name: e.target.value 
-                                }))}
-                            >
+                            <select value={parameters.sampler_name} onChange={(e) => setParameters(prev => ({
+                ...prev,
+                sampler_name: e.target.value
+            }))}>
                                 <option value="Euler a">Euler a (Rapide)</option>
                                 <option value="DPM++ 2M Karras">DPM++ 2M Karras (Qualité)</option>
                                 <option value="DDIM">DDIM (Stable)</option>
@@ -238,56 +198,37 @@ const ImageGenerator: React.FC<ImageGeneratorProps> = ({ prompt: externalPrompt 
 
                     <div className="param-group full-width">
                         <label>Prompt Négatif</label>
-                        <input
-                            type="text"
-                            value={parameters.negative_prompt}
-                            onChange={(e) => setParameters(prev => ({ 
-                                ...prev, 
-                                negative_prompt: e.target.value 
-                            }))}
-                            placeholder="Éléments à éviter dans l'image"
-                        />
+                        <input type="text" value={parameters.negative_prompt} onChange={(e) => setParameters(prev => ({
+                ...prev,
+                negative_prompt: e.target.value
+            }))} placeholder="Éléments à éviter dans l'image"/>
                     </div>
-                </div>
-            )}
+                </div>)}
 
             {/* Zone d'affichage de l'image */}
-            {(imageUrl || loading) && (
-                <div className="image-section">
+            {(imageUrl || loading) && (<div className="image-section">
                     <h3>🎨 Résultat</h3>
                     
                     <div className="image-container">
-                        {loading ? (
-                            <div className="loading-placeholder">
+                        {loading ? (<div className="loading-placeholder">
                                 <div className="loading-spinner"></div>
                                 <p>Génération en cours...</p>
                                 <p className="loading-subtitle">
                                     {isSDAvailable ? 'IA en action' : 'Création du placeholder'}
                                 </p>
-                            </div>
-                        ) : imageUrl ? (
-                            <>
-                                <img 
-                                    src={imageUrl} 
-                                    alt="Image générée" 
-                                    className="generated-image"
-                                />
+                            </div>) : imageUrl ? (<>
+                                <img src={imageUrl} alt="Image générée" className="generated-image"/>
                                 <div className="image-actions">
                                     <button onClick={downloadImage} className="download-btn">
                                         💾 Télécharger
                                     </button>
-                                    <button 
-                                        onClick={() => setImageUrl('')} 
-                                        className="clear-btn"
-                                    >
+                                    <button onClick={() => setImageUrl('')} className="clear-btn">
                                         🗑️ Effacer
                                     </button>
                                 </div>
-                            </>
-                        ) : null}
+                            </>) : null}
                     </div>
-                </div>
-            )}
+                </div>)}
 
             {/* Conseils et exemples */}
             <div className="tips-section">
@@ -311,30 +252,21 @@ const ImageGenerator: React.FC<ImageGeneratorProps> = ({ prompt: externalPrompt 
             </div>
 
             {/* Modales d'authentification et d'avertissement */}
-            <AuthModal 
-                isOpen={showAuthModal}
-                onClose={() => setShowAuthModal(false)}
-                defaultMode="signin"
-            />
+            <AuthModal_1.default isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} defaultMode="signin"/>
 
-            {showCreditsWarning && (
-                <div className="credits-warning-modal" onClick={() => setShowCreditsWarning(false)}>
+            {showCreditsWarning && (<div className="credits-warning-modal" onClick={() => setShowCreditsWarning(false)}>
                     <div className="credits-warning-content" onClick={(e) => e.stopPropagation()}>
                         <div className="warning-icon">⚠️</div>
                         <h3>Crédits insuffisants</h3>
                         <p>Vous n'avez plus de crédits pour aujourd'hui.</p>
                         <p>Vos crédits seront réinitialisés à minuit.</p>
                         <div className="warning-actions">
-                            <button 
-                                className="warning-button"
-                                onClick={() => setShowCreditsWarning(false)}
-                            >
+                            <button className="warning-button" onClick={() => setShowCreditsWarning(false)}>
                                 Compris
                             </button>
                         </div>
                     </div>
-                </div>
-            )}
+                </div>)}
 
             <style jsx>{`
                 .image-generator {
@@ -735,8 +667,6 @@ const ImageGenerator: React.FC<ImageGeneratorProps> = ({ prompt: externalPrompt 
                     transform: translateY(-2px);
                 }
             `}</style>
-        </div>
-    );
+        </div>);
 };
-
-export default ImageGenerator;
+exports.default = ImageGenerator;

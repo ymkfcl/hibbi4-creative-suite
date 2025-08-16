@@ -688,6 +688,14 @@ export default function MangaBuilder() {
           font-weight: bold;
         }
 
+        .manga-builder__title-input {
+          padding: 0.5rem;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          font-size: 1.1rem;
+          font-weight: bold;
+        }
+
         .manga-builder__content {
           flex: 1;
           display: flex;
