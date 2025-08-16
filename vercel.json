@@ -1,0 +1,26 @@
+{
+  "name": "hibbi4-creative-suite",
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ],
+  "env": {
+    "NEXT_PUBLIC_APP_NAME": "HIBBI4 Creative Suite",
+    "NEXT_PUBLIC_APP_VERSION": "2.0.0",
+    "NEXT_PUBLIC_ENABLE_DEMO_MODE": "true"
+  },
+  "functions": {
+    "app/api/**/*.js": {
+      "maxDuration": 30
+    }
+  }
+}
